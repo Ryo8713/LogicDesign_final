@@ -13,7 +13,7 @@ module paddle(
         if (reset)
             paddle_y <= 200; // Start position
         else if (refresh_tick) begin
-            if (up && paddle_y > 0)
+            if (up && paddle_y >= PADDLE_SPEED)
                 paddle_y <= paddle_y - PADDLE_SPEED;
             else if (down && paddle_y < (480 - PADDLE_HEIGHT))
                 paddle_y <= paddle_y + PADDLE_SPEED;

@@ -15,7 +15,7 @@ module ball(
         if (reset) begin
             ball_x <= 320;
             ball_y <= 240;
-            ball_dx <= BALL_SPEED;
+            ball_dx <= -BALL_SPEED;
             ball_dy <= BALL_SPEED;
             score_player1 <= 0;
             score_player2 <= 0;
@@ -24,16 +24,20 @@ module ball(
             ball_y <= ball_y + ball_dy;
 
             // Collision with top/bottom walls
-            if (ball_y <= 0 || ball_y >= 480 - BALL_SIZE)
-                ball_dy <= -ball_dy;
+            if (ball_y <= BALL_SPEED)
+                ball_dy <= BALL_SPEED;
+            else if(ball_y > 480 - BALL_SIZE)
+                ball_dy <= -BALL_SPEED;
 
             // Collision with paddle 1
-            if (ball_x <= 32 && ball_y >= paddle1_y && ball_y <= paddle1_y + 72)
-                ball_dx <= -ball_dx;
+            if ((32 <= ball_x) && (ball_x <= 40) &&
+                (ball_y >= paddle1_y) && (ball_y <= paddle1_y + 72))
+                ball_dx <= BALL_SPEED;
 
             // Collision with paddle 2
-            if (ball_x >= 608 && ball_y >= paddle2_y && ball_y <= paddle2_y + 72)
-                ball_dx <= -ball_dx;
+            if ((600 <= (ball_x + BALL_SIZE - 1)) && ((ball_x + BALL_SIZE - 1) <= 608) &&
+                (ball_y >= paddle2_y) && (ball_y <= paddle2_y + 72))
+                ball_dx <= -BALL_SPEED;
 
             // Scoring conditions
             if (ball_x <= 0) begin
