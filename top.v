@@ -17,7 +17,16 @@ module top(
     wire [5:0]score_player1, score_player2;
 
     reg game_over;
+    reg [1:0] gaming_mode, next_gaming_mode;
+    reg [1:0] main_state, next_main_state;
+    reg [1:0] setting_state, next_setting_state;
+    reg [3:0] ball_speed, next_ball_speed;
     reg [5:0] win_score = 5'd5;
+    reg [9:0] timer, next_timer;
+
+    parameter ready = 0;
+    parameter setting = 1;
+    parameter game = 2;
 
     assign refresh_tick = ((y == 481) && (x == 0)) ? 1 : 0;
     assign led = {refresh_tick, up1, down1};
@@ -73,12 +82,125 @@ module top(
         .ena(1'b1)
     ); */
 
-    always @(posedge clk) begin // win condition
+    // Main_State 
+    always @(posedge clk) begin
+        if(reset) begin
+            main_state <= ready;
+        end else begin
+            main_state <= next_main_state;
+        end
+    end
+
+    always @(*) begin
+        next_main_state = main_state;
+        case(main_state)
+            ready: begin
+                if(up1_pulse) begin
+                    next_snext_main_statetate = setting;
+                end
+            end
+            setting: begin
+                if(up1_pulse) begin
+                    win_score <= win_score + 1;
+                end
+                if(down1_pulse) begin
+                    win_score <= win_score - 1;
+                end
+                if(up1_debounced) begin
+                    next_state = game;
+                end
+            end
+            game: begin
+                if(game_over) begin
+                    next_state = ready;
+                end
+            end
+        endcase
+    end
+
+    // win condition
+    always @(posedge clk) begin 
         if(reset) begin
             game_over <= 0;
         end else begin
             if(score_player1 == win_score || score_player2 == win_score) 
                 game_over <= 1;
+        end
+    end
+
+    //setting state
+    always @(posedge clk) begin
+        if(reset)
+            setting_state <= 0;
+        else
+            setting_state <= next_setting_state;
+    end
+    
+    always @(*) begin
+        if(main_state != setting)
+            setting_state <= 0;
+        else begin
+            if(up1_pulse) begin
+                if(setting_state == 1)
+                    next_setting_state <= 0;
+                else
+                    setting_state <= setting_state + 1;
+            end else if(down1_pulse) begin
+                if(setting_state == 0)
+                    next_setting_state <= 1;
+                else
+                    setting_state <= setting_state - 1;
+            end
+        end
+    end
+
+    always @(posedge clk) begin //gaming parameters setting
+        if(reset) begin
+            ball_speed <= 4'd2;
+            timer <= 10'd30;
+        end else begin
+            ball_speed <= next_ball_speed;
+            timer <= next_timer;
+        end
+    end
+
+    always @(*) begin
+        if(main_state == setting) begin
+            case(setting_state)
+                0: begin //gaming mode setting
+                    if(up1_pulse) begin
+                        if(win_score < 5'd9)
+                            win_score = win_score + 1;
+                    end
+                    if(down1_pulse) begin
+                        if(win_score > 5'd1)
+                            win_score = win_score - 1;
+                    end
+                end
+                1: begin //ball speed setting
+                    if(up1_pulse) begin
+                        if(ball_speed < 4'd15)
+                            next_ball_speed = ball_speed + 1;
+                    end
+                    if(down1_pulse) begin
+                        if(ball_speed > 4'd1)
+                            next_ball_speed = ball_speed - 1;
+                    end
+                end
+                2: begin //timer setting
+                    if(up1_pulse) begin
+                        if(timer < 10'd512)
+                            next_timer = timer + 1;
+                    end
+                    if(down1_pulse) begin
+                        if(timer > 10'd1)
+                            next_timer = timer - 1;
+                    end
+                end
+            endcase
+        end else begin
+            next_ball_speed = ball_speed;
+            next_timer = timer;
         end
     end
 endmodule
