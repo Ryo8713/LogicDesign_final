@@ -5,9 +5,11 @@ module pixel_gen(
     input [9:0] ball_x, ball_y,
     input [9:0] paddle1_y, paddle2_y,
     input [11:0] bg_pixel,
+    input [11:0] game_over_pixel,
     input text_on,
     input [11:0] text_rgb,
     input [3:0] ball_speed, // Input for ball speed
+    input game_over,
     output reg [11:0] rgb
 );
 
@@ -62,6 +64,8 @@ module pixel_gen(
             rgb = WALL_COLOR;
         else if (x > 608 && y >= TOP_MARGIN) // Right wall
             rgb = WALL_COLOR;
+        else if(game_over) // Game over screen
+            rgb = game_over_pixel;
         else if (x >= 32 && x <= 40 && 
                 y >= (paddle1_y + TOP_MARGIN) && 
                 y <= (paddle1_y + 72 + TOP_MARGIN)) // Left paddle

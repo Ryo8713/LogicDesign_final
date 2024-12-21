@@ -21,6 +21,8 @@ set_property IOSTANDARD LVCMOS33 [get_ports up2]
 set_property PACKAGE_PIN A16 [get_ports down2]
 set_property IOSTANDARD LVCMOS33 [get_ports down2]
 
+
+
 #Color Signals
 set_property PACKAGE_PIN G19 [get_ports {rgb[8]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {rgb[8]}]
