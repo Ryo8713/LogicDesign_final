@@ -14,6 +14,10 @@ module top(
     wire [9:0] h_cnt, v_cnt;
     wire refresh_tick;
     wire [9:0] paddle1_y, paddle2_y, ball_x, ball_y;
+    wire [5:0]score_player1, score_player2;
+
+    reg game_over;
+    reg [5:0] win_score = 5'd5;
 
     assign refresh_tick = ((y == 481) && (x == 0)) ? 1 : 0;
     assign led = {refresh_tick, up1, down1};
@@ -48,7 +52,8 @@ module top(
     ball ball_inst(
         .clk(clk_25MHz), .reset(reset), .refresh_tick(refresh_tick),
         .paddle1_y(paddle1_y), .paddle2_y(paddle2_y),
-        .ball_x(ball_x), .ball_y(ball_y)
+        .ball_x(ball_x), .ball_y(ball_y),
+        .score_player1(score_player1), .score_player2(score_player2)
     );
 
     // Pixel Generator
@@ -58,4 +63,22 @@ module top(
         .paddle1_y(paddle1_y), .paddle2_y(paddle2_y),
         .rgb(rgb)
     );
+
+    /*blk_mem_gen_0 blk_mem_gen_0_inst(
+        .clka(clk_25MHz),
+        .wea(0),
+        .addra(pixel_addr),
+        .dina(data[11:0]),
+        .douta(pixel[0]),
+        .ena(1'b1)
+    ); */
+
+    always @(posedge clk) begin // win condition
+        if(reset) begin
+            game_over <= 0;
+        end else begin
+            if(score_player1 == win_score || score_player2 == win_score) 
+                game_over <= 1;
+        end
+    end
 endmodule

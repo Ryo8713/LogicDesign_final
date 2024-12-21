@@ -5,7 +5,7 @@ module ball(
     input [9:0] paddle1_y, paddle2_y,
     output reg [9:0] ball_x, ball_y,
     output reg [9:0] ball_dx, ball_dy,
-    output reg score_player1, score_player2
+    output reg [5:0]score_player1, score_player2
 );
     parameter BALL_SIZE = 8;
     parameter BALL_SPEED = 2;
@@ -41,11 +41,11 @@ module ball(
 
             // Scoring conditions
             if (ball_x <= 0) begin
-                score_player2 <= 1;
+                score_player2 <= score_player2 + 1;
                 ball_x <= 320;
                 ball_y <= 240;
             end else if (ball_x >= 640) begin
-                score_player1 <= 1;
+                score_player1 <= score_player1 + 1;
                 ball_x <= 320;
                 ball_y <= 240;
             end
