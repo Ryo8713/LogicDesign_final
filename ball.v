@@ -7,15 +7,20 @@ module ball(
     output reg [9:0] ball_dx, ball_dy,
     output reg [3:0] score_player1,
     output reg [3:0] score_player2,
-    output reg [5:0] seconds
+    output reg [5:0] seconds,
+    output reg [3:0] BALL_SPEED
 );
     parameter BALL_SIZE = 8;
-    parameter BALL_SPEED = 2;
+    // BALL_SPEED = 2;
     parameter TOP_MARGIN = 25; // Boundary for the top margin
 
     reg [31:0] timer_counter;
     wire oneSec;
-
+    
+    initial begin
+        BALL_SPEED = 2;
+    end
+   
     // Ball movement logic
     always @(posedge clk or posedge reset) begin
         if (reset) begin 
@@ -63,7 +68,7 @@ module ball(
     end
 
     // Timer logic
-    clock_oneSec # (27) clk_oneSec_inst(.clk(clk), .clk1(oneSec));
+    clock_oneSec # (25) clk_oneSec_inst(.clk(clk), .clk_div(oneSec));
 
     always @(posedge oneSec or posedge reset) begin
         if (reset) begin

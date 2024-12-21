@@ -23,6 +23,7 @@ module top(
     wire [5:0] seconds;
     wire text_on;
     wire [11:0] text_rgb;
+    wire [3:0] ball_speed;
     
     assign refresh_tick = ((y == 481) && (x == 0)) ? 1 : 0;
     assign led = {refresh_tick, up1, down1};
@@ -58,7 +59,7 @@ module top(
         .clk(clk_25MHz), .reset(reset), .refresh_tick(refresh_tick),
         .paddle1_y(paddle1_y), .paddle2_y(paddle2_y),
         .ball_x(ball_x), .ball_y(ball_y), 
-        .score_player1(score_player1), .score_player2(score_player2), .seconds(seconds)
+        .score_player1(score_player1), .score_player2(score_player2), .seconds(seconds), .BALL_SPEED(ball_speed)
     );
     
     // Memory Address Generator, Cappi
@@ -101,6 +102,8 @@ module top(
         .bg_pixel(bg_pixel),
         .text_on(text_on),
         .text_rgb(text_rgb),
+        .ball_speed(ball_speed),  // Pass ball_speed from ball module
         .rgb(rgb)
     );
+    
 endmodule
