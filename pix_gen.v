@@ -53,19 +53,20 @@ module pixel_gen(
     always @* begin
         if (~video_on)
             rgb = 12'h000;  // Black when video is off
+        else if(game_over) // Game over screen
+            rgb = game_over_pixel;
         else if (y < TOP_MARGIN) begin
             if (text_on)
                 rgb = text_rgb;
             else
                 rgb = HEADER_BG_COLOR;
         end
-        // Adjust y coordinates for all game elements by adding TOP_MARGIN
+        // Adjust y coordinates for all game elements by adding TOP_MARGIN 
         else if (x < 32 && y >= TOP_MARGIN) // Left wall
             rgb = WALL_COLOR;
         else if (x > 608 && y >= TOP_MARGIN) // Right wall
             rgb = WALL_COLOR;
-        else if(game_over) // Game over screen
-            rgb = game_over_pixel;
+        
         else if (x >= 32 && x <= 40 && 
                 y >= (paddle1_y + TOP_MARGIN) && 
                 y <= (paddle1_y + 72 + TOP_MARGIN)) // Left paddle
