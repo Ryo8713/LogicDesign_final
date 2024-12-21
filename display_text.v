@@ -10,7 +10,6 @@ module display_text(
     parameter TEXT_COLOR = 12'hFFF;  // White color for text
     
     // Define positions for text
-    parameter SCORE_Y = 8;    // Y position for score and timer text
     parameter SCORE1_X = 40;  // X position for SCORE 1
     parameter TIMER_X = 280;  // X position for TIMER
     parameter SCORE2_X = 520; // X position for SCORE 2
@@ -287,7 +286,8 @@ module display_text(
         score2_active = 1'b0;
 
         // Determine which text block to activate
-        if (y >= TEXT_Y && y < TEXT_Y + 16) begin
+        //if (y >= TEXT_Y && y < TEXT_Y + 16) begin
+        if (y >= TEXT_Y && y < 16) begin
             // SCORE 1
             if (x >= SCORE1_X && x < SCORE1_X + 8 * 9) begin
                 score1_active = 1'b1;
@@ -347,3 +347,4 @@ module display_text(
     end
     
 endmodule
+

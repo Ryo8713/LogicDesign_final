@@ -63,7 +63,7 @@ module ball(
     end
 
     // Timer logic
-    clock_oneSec # (27) clk_oneSec_inst(.clk(clk), .clk1(oneSec));
+    clock_oneSec # (24) clk_oneSec_inst(.clk(clk), .clk_div(oneSec));
 
     always @(posedge oneSec or posedge reset) begin
         if (reset) begin
