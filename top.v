@@ -33,6 +33,11 @@ module top(
     // Assignments
     assign refresh_tick = ((y == 481) && (x == 0)) ? 1 : 0;
     assign led = {refresh_tick, up1, down1};
+    
+    // Add a new wire to indicate when the game is active
+    wire game_active;
+    assign game_active = (game_state == GAME) ? 1 : 0; // Active only in GAME state
+
 
     // Clock Divider
     clock_divider clk_25_inst(.clk(clk), .clk1(clk_25MHz));
@@ -82,6 +87,7 @@ module top(
         .clk(clk_25MHz),
         .reset(reset),
         .refresh_tick(refresh_tick),
+        .game_active(game_active),
         .paddle1_y(paddle1_y),
         .paddle2_y(paddle2_y),
         .ball_x(ball_x),

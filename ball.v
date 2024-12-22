@@ -2,6 +2,7 @@ module ball(
     input clk,
     input reset,
     input refresh_tick,
+    input game_active, // New input to control ball movement
     input [9:0] paddle1_y, paddle2_y,
     output reg [9:0] ball_x, ball_y,
     output reg [9:0] ball_dx, ball_dy,
@@ -12,17 +13,13 @@ module ball(
     output reg game_over
 );
     parameter BALL_SIZE = 8;
-    // BALL_SPEED = 2;
-    parameter TOP_MARGIN = 25; // Boundary for the top margin
+    parameter TOP_MARGIN = 25;
 
-    reg [31:0] timer_counter;
-    wire oneSec;
-    
     initial begin
         BALL_SPEED = 2;
         game_over = 1'b0;
     end
-   
+
     // Ball movement logic
     always @(posedge clk or posedge reset) begin
         if (reset) begin 
@@ -33,11 +30,11 @@ module ball(
             score_player1 <= 0;
             score_player2 <= 0;
             game_over <= 1'b0;
-        end else if (refresh_tick) begin
+        end else if (refresh_tick && game_active) begin // Move ball only if game is active
             ball_x <= ball_x + ball_dx;
             ball_y <= ball_y + ball_dy;
 
-            // Collision with top boundary (score and timer area)
+            // Collision with top boundary
             if (ball_y <= TOP_MARGIN + BALL_SPEED)
                 ball_dy <= BALL_SPEED;
 
@@ -70,15 +67,15 @@ module ball(
                 game_over <= 1'b0;
             end
             
-            //game over
-            if(score_player1 == 'd5 || score_player2 == 'd5)begin
+            // Game over condition
+            if (score_player1 == 'd5 || score_player2 == 'd5) begin
                 score_player1 <= 'd0;
                 score_player2 <= 'd0;
                 game_over <= 1'b1;
             end
         end
     end
-
+    
     // Timer logic
     clock_oneSec # (25) clk_oneSec_inst(.clk(clk), .clk_div(oneSec));
 
@@ -90,18 +87,20 @@ module ball(
             BALL_SPEED <= 'd2;
         end
         else begin
-            if(seconds == 6'd0) begin
-                seconds <= 6'd10;
-                if(BALL_SPEED < 'd5)BALL_SPEED <= BALL_SPEED + 'd1;
-                else if(BALL_SPEED == 'd5)BALL_SPEED <= 'd2;
-            end
-            else begin
-                seconds <= seconds - 6'd1;
+            if(game_active)begin
+                if(seconds == 6'd0) begin
+                    seconds <= 6'd10;
+                    if(BALL_SPEED < 'd5)BALL_SPEED <= BALL_SPEED + 'd1;
+                    else if(BALL_SPEED == 'd5)BALL_SPEED <= 'd2;
+                end
+                else begin
+                    seconds <= seconds - 6'd1;
+                end
             end
         end
     end
-
 endmodule
+
 
 module clock_oneSec #(
     parameter n = 27
