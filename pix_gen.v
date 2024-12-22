@@ -18,10 +18,10 @@ module pixel_gen #(
 );
     parameter WALL_COLOR = 12'h89C;
     parameter PADDLE_COLOR = 12'h24F;
-    parameter BALL_COLOR_BLUE = 12'h135;
-    parameter BALL_COLOR_YELLOW = 12'hFF0;
-    parameter BALL_COLOR_GREEN = 12'h0F0;
-    parameter BALL_COLOR_RED = 12'hF00;
+    parameter BALL_COLOR_BLUE = 12'h012;  // Darker blue
+    parameter BALL_COLOR_YELLOW = 12'h880;   // Darker yellow
+    parameter BALL_COLOR_GREEN = 12'h080;  // Darker green
+    parameter BALL_COLOR_RED = 12'h800;    // Darker red
     parameter TOP_MARGIN = 25;
     parameter HEADER_BG_COLOR = 12'h135;
 
