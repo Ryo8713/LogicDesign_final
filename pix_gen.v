@@ -15,8 +15,8 @@ module pixel_gen(
 
     parameter WALL_COLOR = 12'h89C;  // Light blue
     parameter PADDLE_COLOR = 12'h24F;  // Deep ice blue
-    parameter BALL_COLOR_WHITE = 12'hFFF;  // White color for speed 2
-    parameter BALL_COLOR_BLUE = 12'h00F;   // Blue color for speed 3
+    parameter BALL_COLOR_BLUE = 12'h135;  // White color for speed 2
+    parameter BALL_COLOR_YELLOW = 12'hFF0;   // Yellow color for speed 3
     parameter BALL_COLOR_GREEN = 12'h0F0;  // Green color for speed 4
     parameter BALL_COLOR_RED = 12'hF00;    // Red color for speed 5
     parameter TOP_MARGIN = 25;
@@ -41,11 +41,11 @@ module pixel_gen(
         input [3:0] speed;
         begin
             case (speed)
-                4'd2: get_ball_color = BALL_COLOR_WHITE; // Speed 2: White
-                4'd3: get_ball_color = BALL_COLOR_BLUE;  // Speed 3: Blue
+                4'd2: get_ball_color = BALL_COLOR_BLUE; // Speed 2: White
+                4'd3: get_ball_color = BALL_COLOR_YELLOW;  // Speed 3: Blue
                 4'd4: get_ball_color = BALL_COLOR_GREEN; // Speed 4: Green
                 4'd5: get_ball_color = BALL_COLOR_RED;   // Speed 5: Red
-                default: get_ball_color = BALL_COLOR_WHITE; // Default to White
+                default: get_ball_color = BALL_COLOR_BLUE; // Default to White
             endcase
         end
     endfunction
@@ -53,19 +53,20 @@ module pixel_gen(
     always @* begin
         if (~video_on)
             rgb = 12'h000;  // Black when video is off
+        else if(game_over) // Game over screen
+            rgb = game_over_pixel;
         else if (y < TOP_MARGIN) begin
             if (text_on)
                 rgb = text_rgb;
             else
                 rgb = HEADER_BG_COLOR;
         end
-        // Adjust y coordinates for all game elements by adding TOP_MARGIN
+        // Adjust y coordinates for all game elements by adding TOP_MARGIN 
         else if (x < 32 && y >= TOP_MARGIN) // Left wall
             rgb = WALL_COLOR;
         else if (x > 608 && y >= TOP_MARGIN) // Right wall
             rgb = WALL_COLOR;
-        else if(game_over) // Game over screen
-            rgb = game_over_pixel;
+        
         else if (x >= 32 && x <= 40 && 
                 y >= (paddle1_y + TOP_MARGIN) && 
                 y <= (paddle1_y + 72 + TOP_MARGIN)) // Left paddle
