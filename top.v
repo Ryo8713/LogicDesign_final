@@ -3,6 +3,7 @@ module top(
     input reset,
     input up1, up2, down1, down2, // Player controls
     input start, setting,        // Start and Setting button inputs
+    input multiple_ball_mode,
     output hsync, vsync,
     output [2:0] led,
     output reg [11:0] rgb
@@ -28,7 +29,7 @@ module top(
     wire text_on, menu_text_on, settings_text_on;
     wire [11:0] text_rgb;
     wire [3:0] ball_speed;
-    wire game_over;
+    wire game_over, multiple;
     
     // Game state variables
     reg [1:0] game_state; // 00: MENU, 01: GAME, 10: SETTINGS
@@ -37,6 +38,7 @@ module top(
     // Assignments
     assign refresh_tick = ((y == 481) && (x == 0)) ? 1 : 0;
     assign led = {refresh_tick, up1, down1};
+    assign multiple = multiple_ball_mode;
     
     // Add a new wire to indicate when the game is active
     wire game_active;
@@ -106,7 +108,8 @@ module top(
         .score_player2(score_player2),
         .seconds(seconds),
         .BALL_SPEED(ball_speed),
-        .game_over(game_over)
+        .game_over(game_over),
+        .multiple_ball_mode(multiple)
     );
 
     // Memory Address Generator
@@ -190,6 +193,7 @@ module top(
         .text_rgb(text_rgb),
         .ball_speed(ball_speed),
         .game_over(game_over),
+        .multiple_ball_mode(multiple),
         .rgb(game_rgb)
     );
 

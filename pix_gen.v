@@ -4,6 +4,7 @@ module pixel_gen #(
     input [9:0] x,
     input [9:0] y,
     input video_on,
+    input multiple_ball_mode,
     input [9:0] ball_x_0, ball_x_1, ball_x_2,  // Individual ball x positions
     input [9:0] ball_y_0, ball_y_1, ball_y_2,  // Individual ball y positions
     input [9:0] paddle1_y, paddle2_y,
@@ -118,7 +119,7 @@ module pixel_gen #(
                 y >= (paddle2_y + TOP_MARGIN) && 
                 y <= (paddle2_y + 72 + TOP_MARGIN))
             rgb = PADDLE_COLOR;
-        else if (any_ball_on)
+        else if (ball_on_0 || (multiple_ball_mode && (ball_on_1 || ball_on_2)))
             rgb = get_ball_color(ball_speed);
         else
             rgb = bg_pixel;
