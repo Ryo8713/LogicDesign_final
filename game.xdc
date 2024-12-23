@@ -4,7 +4,7 @@ set_property IOSTANDARD LVCMOS33 [get_ports clk]
 create_clock -period 10.000 -name sys_clk_pin -waveform {0.000 5.000} -add [get_ports clk]
 
 ## Buttons
-set_property PACKAGE_PIN U18 [get_ports reset]
+set_property PACKAGE_PIN T17 [get_ports reset]
 set_property IOSTANDARD LVCMOS33 [get_ports reset]
 
 ## Player 1 Controls
@@ -13,6 +13,9 @@ set_property IOSTANDARD LVCMOS33 [get_ports up1]
 
 set_property PACKAGE_PIN U17 [get_ports down1]
 set_property IOSTANDARD LVCMOS33 [get_ports down1]
+
+set_property PACKAGE_PIN U18 [get_ports enter]
+set_property IOSTANDARD LVCMOS33 [get_ports enter]
 
 ## Player 2 Controls (have to be changed)
 set_property PACKAGE_PIN A14 [get_ports up2]
