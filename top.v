@@ -1,10 +1,10 @@
 module top(
     input clk,
     input reset,
-    input up1, up2, down1,down2, enter, // Player controls
+    input up1, up2, down1,down2, enter, left, right, // Player controls
     output hsync, vsync,
-    output [2:0] led,
-    output reg [11:0] rgb
+    output reg [15:0] led,
+    output wire [11:0] rgb
 );
     
     wire clk_25MHz, clk_26;
@@ -17,17 +17,19 @@ module top(
     parameter NUM_BALLS = 3;
     
     wire [9:0] paddle1_y, paddle2_y;
-    wire [9:0] ball_x_0, ball_x_1, ball_x_2;
-    wire [9:0] ball_y_0, ball_y_1, ball_y_2;
-    wire [16:0] pixel_addr;
-    wire [11:0] bg_pixel, menu_rgb, game_rgb, settings_rgb, game_over_pixel, data;
-    wire [3:0] score_player1, score_player2;
-    wire [5:0] seconds;
+    wire [9:0] ball_x_0, ball_x_1;
+    wire [9:0] ball_y_0, ball_y_1;
+    wire [16:0] pixel_addr_0, pixel_addr_1, pixel_addr_2;
+    wire [11:0] bg_pixel, menu_rgb, game_rgb, settings_rgb, game_over_pixel, menu_pixel, data;
+    wire [5:0] alpha_pixel;
     wire text_on, menu_text_on, settings_text_on;
     wire [11:0] text_rgb;
     
     reg game_over;
     reg new_round;
+    reg current_ready_button, next_ready_button;
+    reg [1:0] game_mode, next_game_mode;
+    reg [1:0]current_setting_button, next_setting_button;
     reg [1:0] gaming_mode, next_gaming_mode;
     reg [1:0] main_state, next_main_state;
     reg [1:0] setting_state, next_setting_state;
@@ -37,18 +39,18 @@ module top(
     reg [5:0] win_score = 5'd5;
     reg [9:0] timer, next_timer;
     reg [5:0] seconds, next_seconds;
+    reg [5:0] timer, next_timer;
 
     parameter ready = 0;
     parameter setting = 1;
     parameter game = 2;
 
     assign refresh_tick = ((y == 481) && (x == 0)) ? 1 : 0;
-    assign led = {refresh_tick, up1, down1};
     
     //timer
     always @(posedge clk_26 or posedge reset) begin
         if (reset) begin
-            seconds <= 6'd60; 
+            seconds <= timer; 
         end else begin
             seconds <= next_seconds;
         end
@@ -56,7 +58,7 @@ module top(
 
     always @(*) begin
         if(reset) begin
-            next_seconds = 6'd60;
+            next_seconds = timer;
         end else begin
             if(main_state == game && !game_over) begin
                 if(seconds > 6'd0) 
@@ -70,16 +72,11 @@ module top(
         if(main_state == ready) begin
             score_player1 <= 0;
             score_player2 <= 0;
-            if(enter_pulse) begin
-                new_round <= 1;
-            end else begin
-                new_round <= 0;
-            end
         end else if(main_state == game) begin
-            if (ball_x <= 0) begin
+            if (ball_x_0 <= 0 || ball_x_1 <= 0) begin
                 score_player2 <= score_player2 + 1;
                 new_round <= 1;
-            end else if (ball_x >= 640) begin
+            end else if (ball_x_0 >= 640 || ball_x_1 >= 640) begin
                 score_player1 <= score_player1 + 1;
                 new_round <= 1;
             end else begin
@@ -88,6 +85,7 @@ module top(
         end else begin
             score_player1 <= 0;
             score_player2 <= 0;
+            new_round <= 1;
         end
     end
 
@@ -104,20 +102,11 @@ module top(
         next_main_state = main_state;
         case(main_state)
             ready: begin
-                if(enter_pulse) begin
-                    next_main_state = game;
-                end
+                next_main_state = setting;
             end
             setting: begin
-                /*if(up1_pulse) begin
-                    win_score <= win_score + 1;
-                end
-                if(down1_pulse) begin
-                    win_score <= win_score - 1;
-                end
-                if(up1_debounced) begin
-                    next_state = game;
-                end*/
+                if(enter_pulse)
+                    next_main_state = game;
             end
             game: begin
                 if(game_over && count == 2'd3) begin
@@ -126,6 +115,56 @@ module top(
             end
         endcase
     end
+
+    //control button 
+    /*always @(posedge clk) begin 
+        if(reset) begin
+            current_ready_button <= 0;
+            current_setting_button <= 0;
+        end else if(main_state == ready) begin
+            if(up1_pulse)
+                current_ready_button <= 0;
+            if(down1_pulse)
+                current_ready_button <= 1;
+        end else if(main_state == setting) begin
+            current_setting_button <= next_setting_button;
+        end 
+    end
+
+    always @(*) begin
+        if(main_state == ready) begin
+            case(current_ready_button)
+                0: begin //game start
+                
+                    next_ready_button = 1;
+                end
+                1: begin //setting
+                    
+                    next_ready_button = 0;
+                end
+            endcase
+        end else if(main_state == setting) begin
+            if(setting_state == 0) begin
+                case(current_setting_button)
+                    0: begin
+                        if(down1_pulse)
+                            next_setting_button = 1;
+                    end
+                    1: begin
+                        if(up1_pulse)
+                            next_setting_button = 0;
+                        if(down1_pulse)
+                            next_setting_button = 2;
+                    end
+                    2: begin
+                        if(up1_pulse)
+                            next_setting_button = 1;
+                    end
+                endcase
+            end else
+                next_setting_button = 0;
+        end 
+    end*/
 
     // win condition
     always @(posedge clk) begin 
@@ -152,31 +191,59 @@ module top(
     end
 
     //setting state
-    always @(posedge clk) begin
+    /*always @(posedge clk) begin
         if(reset)
             setting_state <= 0;
-        else
-            setting_state <= next_setting_state;
+        else if(main_state == setting)
+            if(setting_state == 1 && left_pulse)
+                setting_state <= 0;
+            else if(setting_state == 0 && enter_pulse)
+                setting_state <= 1;
     end
     
     always @(*) begin
         if(main_state != setting)
-            setting_state <= 0;
+            next_setting_state = 0;
         else begin
-            case (game_state)
-                MENU: begin
-                    if (start) game_state <= GAME;
-                    else if (setting) game_state <= SETTINGS;
+            case(setting_state)
+                0: begin
+                    if(enter_pulse)
+                        next_setting_state = 1;
                 end
-                GAME: begin
-                    if (reset) game_state <= MENU; // Back to menu on reset
-                end
-                SETTINGS: begin
-                    if (reset) game_state <= MENU; // Back to menu on reset
+                1: begin
+                    if(left_pulse)
+                        next_setting_state = 0;
                 end
             endcase
         end
+    end*/
+
+    //setting game mode
+    always @(posedge clk) begin
+        if(main_state == ready) begin
+            timer <= 60;
+            game_mode <= 0;
+        end else if(main_state == setting) begin
+            if(left_pulse)
+                game_mode <= 0;
+            else if(right_pulse)
+                game_mode <= 1;
+        end
     end
+
+    //led control
+    always @(*) begin
+        if(main_state == ready)
+            led = 16'b0000000000000001;
+        else if(main_state == setting)
+            if(game_mode == 0)
+                led = 16'b1111111100000000;
+            else
+                led = 16'b0000000011111111;
+        else if(main_state == game)
+            led = 16'b0000000000000000;
+    end
+
 
     // Clock Divider 
     clock_divider #(2) clk_25_inst (.clk(clk), .clk_div(clk_25MHz));
@@ -185,10 +252,14 @@ module top(
     debounce up1_debounce(.pb(up1), .clk(clk), .pb_debounced(up1_debounced));
     debounce down1_debounce(.pb(down1), .clk(clk), .pb_debounced(down1_debounced));
     debounce enter_debounce(.pb(enter), .clk(clk), .pb_debounced(enter_debounced));
+    debounce left_debounce(.pb(left), .clk(clk), .pb_debounced(left_debounced));
+    debounce right_debounce(.pb(right), .clk(clk), .pb_debounced(right_debounced));
     //one_pulse
     one_pulse up1_op(.clk(clk), .pb_in(up1_debounced), .pb_out(up1_pulse));
     one_pulse down1_op(.clk(clk), .pb_in(down1_debounced), .pb_out(down1_pulse));
     one_pulse enter_op(.clk(clk), .pb_in(enter_debounced), .pb_out(enter_pulse));
+    one_pulse left_op(.clk(clk), .pb_in(left_debounced), .pb_out(left_pulse));
+    one_pulse right_op(.clk(clk), .pb_in(right_debounced), .pb_out(right_pulse));
     // VGA Controller
     vga_controller   vga_inst(
         .pclk(clk_25MHz),
@@ -208,36 +279,53 @@ module top(
 
     // Ball Logic
     ball ball_inst(
-        .clk(clk_25MHz), .reset(new_round), .refresh_tick(refresh_tick),
-        .paddle1_y(paddle1_y), .paddle2_y(paddle2_y), .BALL_SPEED(ball_speed),
-        .ball_x(ball_x), .ball_y(ball_y)
+        .clk(clk_25MHz), .reset(new_round), .refresh_tick(refresh_tick), .game_mode(game_mode), .main_state(main_state),
+        .paddle1_y(paddle1_y), .paddle2_y(paddle2_y), 
+        .ball_x_0(ball_x_0), .ball_y_0(ball_y_0), .ball_x_1(ball_x_1), .ball_y_1(ball_y_1)
     );
     
     // Memory Address Generator, Cappi
-    mem_addr_gen mem_addr_gen_inst(
+    mem_addr_gen_0 mem_addr_gen_0_inst(
         .clk(clk_25MHz),
         .rst(reset),
         .h_cnt(h_cnt),
         .v_cnt(v_cnt),
-        .pixel_addr(pixel_addr)
+        .pixel_addr(pixel_addr_0)
+    );
+
+    mem_addr_gen_1 mem_addr_gen_1_inst(
+        .clk(clk_25MHz),
+        .rst(reset),
+        .h_cnt(h_cnt),
+        .v_cnt(v_cnt),
+        .pixel_addr(pixel_addr_1)
     );
     
-    // Block memory, Cappi
-    blk_mem_gen_0 blk_mem_gen_0_inst(
+    //BRAM
+    blk_mem_gen_0 blk_mem_gen_0_inst( //game_background
         .clka(clk_25MHz),
         .wea(0),
-        .addra(pixel_addr),
+        .addra(pixel_addr_0),
         .dina(data[11:0]),
         .douta(bg_pixel)
     );
     
-    blk_mem_gen_1 blk_mem_gen_1_inst(
+    blk_mem_gen_1 blk_mem_gen_1_inst( //game_over
         .clka(clk_25MHz),
         .wea(0),
-        .addra(pixel_addr),
+        .addra(pixel_addr_1),
         .dina(data[11:0]),
         .douta(game_over_pixel)
     );
+
+    blk_mem_gen_2 blk_mem_gen_2_inst( //menu
+        .clka(clk_25MHz),
+        .wea(0),
+        .addra(pixel_addr_1),
+        .dina(data[11:0]),
+        .douta(menu_pixel)
+    );
+
     
     // Instantiate text display module, cappi
     display_text text_display(
@@ -255,16 +343,21 @@ module top(
         .x(x),
         .y(y),
         .video_on(valid),
-        .ball_x(ball_x),
-        .ball_y(ball_y),
+        .ball_x_0(ball_x_0),
+        .ball_x_1(ball_x_1),
+        .ball_y_0(ball_y_0),
+        .ball_y_1(ball_y_1),
         .paddle1_y(paddle1_y),
         .paddle2_y(paddle2_y),
         .bg_pixel(bg_pixel),
         .game_over_pixel(game_over_pixel),
         .text_on(text_on),
         .text_rgb(text_rgb),
-        .ball_speed(ball_speed),  // Pass ball_speed from ball module
         .game_over(game_over),
+        .main_state(main_state),
+        .current_ready_button(current_ready_button),
+        .alpha_pixel(alpha_pixel),
+        .game_mode(game_mode),
         .rgb(rgb)
     );
 endmodule

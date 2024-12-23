@@ -21,7 +21,7 @@
     
 //endmodule
 
-module mem_addr_gen(
+module mem_addr_gen_0(
    input clk,
    input rst,
    input [9:0] h_cnt,
@@ -40,4 +40,22 @@ module mem_addr_gen(
     
 endmodule
 
+module mem_addr_gen_1(
+   input clk,
+   input rst,
+   input [9:0] h_cnt,
+   input [9:0] v_cnt,
+   output [16:0] pixel_addr
+   );
+    
+   // Scale the coordinates by multiplying by 160/640 = 1/4 for width
+   // and 120/480 = 1/4 for height to map from 640x480 to 160x120
+   wire [9:0] scaled_h = h_cnt >> 2;  // Divide by 4
+   wire [9:0] scaled_v = v_cnt >> 2;  // Divide by 4
+   
+   // Calculate pixel address based on scaled coordinates
+   // pixel_addr = x + y * width
+   assign pixel_addr = (scaled_h + scaled_v * 160) % 19200;  // 160 * 120 = 19200 total pixels
+    
+endmodule
 
