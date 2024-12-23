@@ -21,10 +21,24 @@ set_property IOSTANDARD LVCMOS33 [get_ports enter]
 set_property PACKAGE_PIN A14 [get_ports up2]
 set_property IOSTANDARD LVCMOS33 [get_ports up2]
 
-set_property PACKAGE_PIN A16 [get_ports down2]
+set_property PACKAGE_PIN W19 [get_ports down2]
 set_property IOSTANDARD LVCMOS33 [get_ports down2]
+## Player 2 Controls (have to be changed)
+#set_property PACKAGE_PIN A14 [get_ports up2]
+#set_property IOSTANDARD LVCMOS33 [get_ports up2]
 
+#set_property PACKAGE_PIN A16 [get_ports down2]
+#set_property IOSTANDARD LVCMOS33 [get_ports down2]
 
+## Start and setting button
+set_property PACKAGE_PIN R2 [get_ports start]
+set_property IOSTANDARD LVCMOS33 [get_ports start]
+
+set_property PACKAGE_PIN T1 [get_ports setting]
+set_property IOSTANDARD LVCMOS33 [get_ports setting]
+
+set_property PACKAGE_PIN U1 [get_ports multiple_ball_mode]
+set_property IOSTANDARD LVCMOS33 [get_ports multiple_ball_mode]
 
 #Color Signals
 set_property PACKAGE_PIN G19 [get_ports {rgb[8]}]

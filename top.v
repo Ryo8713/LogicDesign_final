@@ -4,7 +4,7 @@ module top(
     input up1, up2, down1,down2, enter, // Player controls
     output hsync, vsync,
     output [2:0] led,
-    output [11:0] rgb
+    output reg [11:0] rgb
 );
     
     wire clk_25MHz, clk_26;
@@ -13,13 +13,17 @@ module top(
     wire [9:0] x, y;
     wire [9:0] h_cnt, v_cnt;
     wire refresh_tick;
-    wire [9:0] paddle1_y, paddle2_y, ball_x, ball_y;
-    wire [11:0] data;
-
-    // Cappi
+    
+    parameter NUM_BALLS = 3;
+    
+    wire [9:0] paddle1_y, paddle2_y;
+    wire [9:0] ball_x_0, ball_x_1, ball_x_2;
+    wire [9:0] ball_y_0, ball_y_1, ball_y_2;
     wire [16:0] pixel_addr;
-    wire [11:0] bg_pixel, game_over_pixel;
-    wire text_on;
+    wire [11:0] bg_pixel, menu_rgb, game_rgb, settings_rgb, game_over_pixel, data;
+    wire [3:0] score_player1, score_player2;
+    wire [5:0] seconds;
+    wire text_on, menu_text_on, settings_text_on;
     wire [11:0] text_rgb;
     
     reg game_over;
@@ -159,67 +163,18 @@ module top(
         if(main_state != setting)
             setting_state <= 0;
         else begin
-            if(up1_pulse) begin
-                if(setting_state == 1)
-                    next_setting_state <= 0;
-                else
-                    setting_state <= setting_state + 1;
-            end else if(down1_pulse) begin
-                if(setting_state == 0)
-                    next_setting_state <= 1;
-                else
-                    setting_state <= setting_state - 1;
-            end
-        end
-    end
-
-    always @(posedge clk) begin //gaming parameters setting
-        if(reset) begin
-            ball_speed <= 4'd2;
-            timer <= 10'd30;
-        end else begin
-            ball_speed <= next_ball_speed;
-            timer <= next_timer;
-        end
-    end
-
-    always @(*) begin
-        if(main_state == setting) begin
-            case(setting_state)
-                0: begin //gaming mode setting
-                    if(up1_pulse) begin
-                        if(win_score < 5'd9)
-                            win_score = win_score + 1;
-                    end
-                    if(down1_pulse) begin
-                        if(win_score > 5'd1)
-                            win_score = win_score - 1;
-                    end
+            case (game_state)
+                MENU: begin
+                    if (start) game_state <= GAME;
+                    else if (setting) game_state <= SETTINGS;
                 end
-                1: begin //ball speed setting
-                    if(up1_pulse) begin
-                        if(ball_speed < 4'd15)
-                            next_ball_speed = ball_speed + 1;
-                    end
-                    if(down1_pulse) begin
-                        if(ball_speed > 4'd1)
-                            next_ball_speed = ball_speed - 1;
-                    end
+                GAME: begin
+                    if (reset) game_state <= MENU; // Back to menu on reset
                 end
-                2: begin //timer setting
-                    if(up1_pulse) begin
-                        if(timer < 10'd512)
-                            next_timer = timer + 1;
-                    end
-                    if(down1_pulse) begin
-                        if(timer > 10'd1)
-                            next_timer = timer - 1;
-                    end
+                SETTINGS: begin
+                    if (reset) game_state <= MENU; // Back to menu on reset
                 end
             endcase
-        end else begin
-            next_ball_speed = ball_speed;
-            next_timer = timer;
         end
     end
 
